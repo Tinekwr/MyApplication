@@ -37,7 +37,6 @@ public class MainActivity extends AppCompatActivity {
         String weightStr = weightInput.getText().toString();
 
         if (!heightStr.isEmpty() && !weightStr.isEmpty()) {
-            //double height = Double.parseDouble(heightStr);
             double height = Double.parseDouble(heightStr) / 100.0;
             double weight = Double.parseDouble(weightStr);
             double bmi = weight / (height * height);
