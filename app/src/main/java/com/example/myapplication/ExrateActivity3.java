@@ -129,13 +129,16 @@ public class ExrateActivity3 extends AppCompatActivity {
             }
 
             double result = rmb * rate;
-
+            String rateSource = isUsingDefaultRate() ? "(默认汇率)" : "(自定义汇率)";
+、
             tvResult.setText(String.format("%.2f 人民币 = %.2f %s %s",
-                    rmb, result, selectedCurrency));
+                    rmb, result, selectedCurrency, rateSource));
+
         } catch (NumberFormatException e) {
             tvResult.setText("请输入有效的数字");
         }
     }
+
     private double getSelectedRate() {
         switch (selectedCurrency) {
             case "美元": return sharedPreferences.getFloat("DOLLAR_RATE", DEFAULT_DOLLAR_RATE);

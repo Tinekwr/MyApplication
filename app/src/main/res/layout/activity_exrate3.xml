@@ -41,31 +41,31 @@
             android:layout_marginTop="16dp"
             android:text="选择目标货币" />
 
-        <RadioGroup
-            android:id="@+id/rg_currency"
-            android:layout_width="wrap_content"
+
+        <Button
+            android:id="@+id/rb_dollar"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:orientation="vertical">
+            android:text="美元 (USD)"
+/>
 
-            <Button
-                android:id="@+id/rb_dollar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="美元 (USD)" />
+        <Button
+            android:id="@+id/rb_euro"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="欧元 (EUR)"
+/>
 
-            <Button
-                android:id="@+id/rb_euro"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="欧元 (EUR)" />
+        <Button
+            android:id="@+id/rb_won"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="韩元 (KRW)"
+/>
 
-            <Button
-                android:id="@+id/rb_won"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="韩元 (KRW)" />
-        </RadioGroup>
 
         <Button
             android:id="@+id/btn_config"

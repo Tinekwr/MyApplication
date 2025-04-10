@@ -57,7 +57,7 @@ public class ConfigActivity extends AppCompatActivity {
             float wonRate = Float.parseFloat(etWonRate.getText().toString());
 
             if (dollarRate <= 0 || euroRate <= 0 || wonRate <= 0) {
-                Toast.makeText(this, "汇率必须大于0", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "错误！", Toast.LENGTH_SHORT).show();
                 return;
             }
 
