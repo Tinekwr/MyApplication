@@ -1,4 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">app名</string>
+    <string name="title">汇率计算器</string>
+    <string name="input_hint">输入人民币金额</string>
+    <string name="convert_to_dollar">转换为美元(DOLLAR)</string>
+    <string name="convert_to_euro">转换为欧元(EURO)</string>
+    <string name="convert_to_won">转换为韩元(WON)</string>
+
+    <!-- Toast提示信息 -->
+    <string name="enter_amount">请输入人民币金额</string>
+    <string name="amount_positive">金额必须大于0</string>
+    <string name="valid_number">请输入有效的数字</string>
+    <string name="conversion_complete">转换完成</string>
+
+    <!-- 结果格式 -->
+    <string name="result_format">%1$.2f人民币 = %2$.2f %3$s</string>
 </resources>

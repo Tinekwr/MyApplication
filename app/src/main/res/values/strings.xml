@@ -1,3 +1,17 @@
 <resources>
     <string name="app_name">My Application</string>
+    <string name="title">Currency Converter</string>
+    <string name="input_hint">Enter RMB amount</string>
+    <string name="convert_to_dollar">Convert to DOLLAR</string>
+    <string name="convert_to_euro">Convert to EURO</string>
+    <string name="convert_to_won">Convert to WON</string>
+
+    <!-- Toast messages -->
+    <string name="enter_amount">Please enter RMB amount</string>
+    <string name="amount_positive">Amount must be greater than 0</string>
+    <string name="valid_number">Please enter a valid number</string>
+    <string name="conversion_complete">Conversion completed</string>
+
+    <!-- Result format -->
+    <string name="result_format">%1$.2f RMB = %2$.2f %3$s</string>
 </resources>
