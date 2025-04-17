@@ -1,8 +1,13 @@
 package com.example.myapplication;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
-
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+import android.util.Log;
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -13,6 +18,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.MalformedJsonException;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -21,9 +27,26 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import android.text.Html;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
+import java.net.URL;
+import java.io.Reader;
+import java.io.InputStreamReader;
 
 
-public class ExrateActivity3 extends AppCompatActivity {
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+
+
+
+public class ExrateActivity3 extends AppCompatActivity implements Runnable{
     private EditText etRmb;
     private Button btnDollar, btnEuro, btnWon, btnConfig;
     private TextView tvResult;
@@ -35,6 +58,12 @@ public class ExrateActivity3 extends AppCompatActivity {
     public static final float DEFAULT_DOLLAR_RATE = 0.14f;
     public static final float DEFAULT_EURO_RATE = 0.13f;
     public static final float DEFAULT_WON_RATE = 190.0f;
+
+    private static final String TAG = "Rate";
+
+    private Handler handler;
+
+    @SuppressLint("HandlerLeak")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -94,6 +123,23 @@ public class ExrateActivity3 extends AppCompatActivity {
                 }
             }
         });
+
+        Thread t = new Thread(this);
+        t.start();//this.run
+
+        handler = new Handler(Looper.getMainLooper()) {
+            @Override
+            public void handleMessage(@NonNull Message msg) {
+                Log.i(TAG, "handleMessage:接受消息");
+                if(msg.what == 8){
+                    String str = (String)msg.obj;
+                    Log.i(TAG,"handleMessage: str=" + str);
+                    tvResult.setText(str);
+
+                }
+                super.handleMessage(msg);
+            }
+        };
     }
 
     private void selectCurrency(String currency, Button selectedButton) {
@@ -130,7 +176,7 @@ public class ExrateActivity3 extends AppCompatActivity {
 
             double result = rmb * rate;
             String rateSource = isUsingDefaultRate() ? "(默认汇率)" : "(自定义汇率)";
-、
+
             tvResult.setText(String.format("%.2f 人民币 = %.2f %s %s",
                     rmb, result, selectedCurrency, rateSource));
 
@@ -155,5 +201,55 @@ public class ExrateActivity3 extends AppCompatActivity {
             case "韩元": return !sharedPreferences.contains("WON_RATE");
             default: return true;
         }
+    }
+
+    URL url;
+
+    public void run() {
+        Log.i(TAG, "run.........");
+        //send message
+
+        try {
+            Thread.sleep(3000);
+            Document doc = Jsoup.connect("https://www.boc.cn/sourcedb/whpj/").get();
+            Log.i(TAG, "run:title=" + doc.title());
+
+            Elements tables = doc.getElementsByTag("table");
+            Element table2 = tables.get(1);
+            Elements trs = table2.getElementsByTag("tr");
+            Log.i(TAG, "run: trs=" + trs);
+            trs.remove(0);
+            for(Element tr : trs) {
+                Elements tds = tr.children();
+                Element td1 = tds.first();
+                Element td2 = tds.get(5);
+
+                String str1 = td1.text();
+                String str2 = td2.text();
+                Log.i(TAG, "run:" + str1 + "==>" + str2);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        Message msg = handler.obtainMessage(8, "swufe.edu.cn");
+        handler.sendMessage(msg);
+        Log.i(TAG, "i forget");
+    }
+
+    private String inputStream2String(InputStream inputStream)
+        throws IOException {
+        final int bufferSize = 1024;
+        final char[] buffer = new char[bufferSize];
+        final StringBuilder out = new StringBuilder();
+        Reader in = new InputStreamReader(inputStream, "UTF-8");
+        while (true) {
+            int rsz = in.read(buffer, 0, buffer.length);
+            if (rsz < 0)
+                break;
+            out.append(buffer, 0, rsz);
+        }
+        return out.toString();
     }
 }
