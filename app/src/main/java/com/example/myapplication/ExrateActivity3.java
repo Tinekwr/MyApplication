@@ -140,6 +140,11 @@ public class ExrateActivity3 extends AppCompatActivity implements Runnable {
 
         Thread t = new Thread(this);
         t.start();
+        // 新的内容
+        //WebItemTask task = new WebItemTask();
+        //task.setHandler(handler);
+        //Thread t2 = new Thread(task);
+        //t2.start();
     }
 
     private void selectCurrency(String currency, Button selectedButton) {

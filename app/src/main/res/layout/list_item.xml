@@ -12,16 +12,27 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:text="货币名称"
-        android:textSize="20sp"
+        android:textSize="16sp"
         android:textStyle="bold"
         android:gravity="start" />
 
     <TextView
         android:id="@+id/itemDetail"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_weight="1"
         android:text="汇率"
         android:textSize="16sp"
+        android:gravity="center"
+        android:textColor="#666666" />
+
+    <TextView
+        android:id="@+id/itemExtra"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="编号/其他"
+        android:textSize="16sp"
         android:gravity="end"
-        android:textColor="#666666"/>
+        android:textColor="#999999" />
 </LinearLayout>

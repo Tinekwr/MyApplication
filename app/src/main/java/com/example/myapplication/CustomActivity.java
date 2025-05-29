@@ -1,17 +1,16 @@
 package com.example.myapplication;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
-
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
+import android.widget.ProgressBar;
+import android.widget.SimpleAdapter;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -19,126 +18,136 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 
-public class CustomActivity extends AppCompatActivity {
-
-    private ListView mylist;
+public class CustomActivity extends Activity implements AdapterView.OnItemClickListener {
     private static final String TAG = "CustomActivity";
-    private ArrayList<HashMap<String, String>> currencyList;
 
-    private Handler handler = new Handler(Looper.getMainLooper()) {
-        @Override
-        public void handleMessage(@NonNull Message msg) {
-            if (msg.what == 2) {
-                currencyList = (ArrayList<HashMap<String, String>>) msg.obj;
+    private ListView listView;
+    private ProgressBar progressBar;
 
-                // 使用自定义MyAdapter
-                MyAdapter adapter = new MyAdapter(
-                        CustomActivity.this,
-                        R.layout.list_item,
-                        currencyList
-                );
-                mylist.setAdapter(adapter);
-
-                // 设置列表项点击事件
-                mylist.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        HashMap<String, String> selectedItem = currencyList.get(position);
-                        String currencyName = selectedItem.get("ItemTitle");
-                        String exchangeRate = selectedItem.get("ItemDetail");
-
-                        // 跳转到计算页面
-                        Intent intent = new Intent(CustomActivity.this, CalculateActivity.class);
-                        intent.putExtra("currencyName", currencyName);
-                        intent.putExtra("exchangeRate", exchangeRate);
-                        startActivity(intent);
-                    }
-                });
-
-                Log.i(TAG, "汇率数据加载完成");
-            }
-        }
-    };
+    private Handler handler;
+    private ArrayList<HashMap<String, String>> dataList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_custom_list);
 
-        // 初始化ListView
-        mylist = findViewById(R.id.mylistview2);
+        listView = findViewById(R.id.mylistview2);
+        progressBar = findViewById(R.id.progressBar);
 
-        // 启动网络请求线程
-        fetchExchangeRates();
+        listView.setOnItemClickListener(this);
+
+        handler = new Handler(msg -> {
+            if (msg.what == 2) {
+                dataList = (ArrayList<HashMap<String, String>>) msg.obj;
+
+                SimpleAdapter adapter = new SimpleAdapter(CustomActivity.this, dataList,
+                        R.layout.list_item,
+                        new String[]{"ItemTitle", "ItemDetail", "ItemExtra"},
+                        new int[]{R.id.itemTitle, R.id.itemDetail, R.id.itemExtra});
+                listView.setAdapter(adapter);
+                progressBar.setVisibility(View.GONE);
+            }
+            return true;
+        });
+
+        SharedPreferences prefs = getSharedPreferences("rate_prefs", MODE_PRIVATE);
+        String lastUpdateDate = prefs.getString("last_update_date", "");
+        String today = new SimpleDateFormat("yyyy-MM-dd", Locale.CHINA).format(new Date());
+
+        if (today.equals(lastUpdateDate)) {
+            Log.i(TAG, "今天已更新，读取数据库");
+            loadFromDatabase();
+        } else {
+            Log.i(TAG, "今天未更新，联网获取");
+            fetchExchangeRatesAndUpdateDatabase(today);
+        }
     }
 
-    /**
-     * 从中国银行网站获取汇率数据
-     */
-    private void fetchExchangeRates() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                ArrayList<HashMap<String, String>> resultList = new ArrayList<>();
+    private void loadFromDatabase() {
+        RateManager manager = new RateManager(this);
+        List<RateItem> dbList = manager.getAllRates();
 
-                try {
-                    // 使用Jsoup获取网页数据
-                    Document doc = Jsoup.connect("https://www.boc.cn/sourcedb/whpj/")
-                            .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
-                            .timeout(10000)
-                            .get();
+        ArrayList<HashMap<String, String>> resultList = new ArrayList<>();
+        for (RateItem item : dbList) {
+            HashMap<String, String> map = new HashMap<>();
+            map.put("ItemTitle", item.getCname());
+            map.put("ItemDetail", String.valueOf(item.getCval()));
+            map.put("ItemExtra", "来自数据库");
+            resultList.add(map);
+        }
 
-                    Log.d(TAG, "成功连接到中国银行网站");
+        handler.sendMessage(handler.obtainMessage(2, resultList));
 
-                    // 解析表格数据
-                    Elements tables = doc.getElementsByTag("table");
-                    if (tables.size() < 2) {
-                        Log.e(TAG, "未找到汇率表格");
-                        return;
-                    }
 
-                    Element rateTable = tables.get(1); // 第二个表格是汇率表
+    }
+
+    private void fetchExchangeRatesAndUpdateDatabase(String today) {
+        progressBar.setVisibility(View.VISIBLE);
+
+        new Thread(() -> {
+            ArrayList<HashMap<String, String>> resultList = new ArrayList<>();
+            RateManager manager = new RateManager(CustomActivity.this);
+            manager.clearAll();
+
+            try {
+                Document doc = Jsoup.connect("https://www.boc.cn/sourcedb/whpj/")
+                        .header("User-Agent", "Mozilla/5.0")
+                        .timeout(10000)
+                        .get();
+
+                Elements tables = doc.getElementsByTag("table");
+                if (tables.size() >= 2) {
+                    Element rateTable = tables.get(1);
                     Elements rows = rateTable.getElementsByTag("tr");
 
-                    // 跳过表头
                     for (int i = 1; i < rows.size(); i++) {
                         Element row = rows.get(i);
                         Elements cols = row.getElementsByTag("td");
 
                         if (cols.size() >= 6) {
-                            String currencyName = cols.get(0).text();    // 货币名称
-                            String exchangeRate = cols.get(5).text();   // 现汇卖出价
+                            String currencyName = cols.get(0).text();
+                            String exchangeRate = cols.get(5).text();
 
-                            // 添加到结果列表
                             HashMap<String, String> item = new HashMap<>();
                             item.put("ItemTitle", currencyName);
                             item.put("ItemDetail", exchangeRate);
+                            item.put("ItemExtra", "来自网络");
                             resultList.add(item);
 
-                            Log.d(TAG, currencyName + ": " + exchangeRate);
+                            manager.saveRate(new RateItem(currencyName, Float.parseFloat(exchangeRate)));
                         }
                     }
-                } catch (IOException e) {
-                    Log.e(TAG, "获取汇率数据失败: " + e.getMessage());
-                    e.printStackTrace();
-                } catch (Exception e) {
-                    Log.e(TAG, "解析数据时出错: " + e.getMessage());
-                    e.printStackTrace();
                 }
 
-                // 发送消息更新UI
-                handler.sendMessage(handler.obtainMessage(2, resultList));
+                SharedPreferences.Editor editor = getSharedPreferences("rate_prefs", MODE_PRIVATE).edit();
+                editor.putString("last_update_date", today);
+                editor.apply();
+
+            } catch (IOException e) {
+                Log.e(TAG, "获取汇率失败：" + e.getMessage());
             }
+
+            handler.sendMessage(handler.obtainMessage(2, resultList));
         }).start();
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        // 避免内存泄漏
-        handler.removeCallbacksAndMessages(null);
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        HashMap<String, String> map = dataList.get(position);
+        String title = map.get("ItemTitle");
+        String detail = map.get("ItemDetail");
+
+        Intent intent = new Intent(this, CalculateActivity.class);
+        intent.putExtra("currencyName", title);
+        intent.putExtra("exchangeRate", detail);
+        startActivity(intent);
     }
 }

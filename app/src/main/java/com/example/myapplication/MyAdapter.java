@@ -37,10 +37,12 @@ public class MyAdapter extends ArrayAdapter<HashMap<String, String>> {
 
         TextView title = convertView.findViewById(R.id.itemTitle);
         TextView detail = convertView.findViewById(R.id.itemDetail);
+        TextView extra = convertView.findViewById(R.id.itemExtra);
 
         if (item != null) {
             title.setText(item.get("ItemTitle"));
             detail.setText(item.get("ItemDetail"));
+            extra.setText(item.get("ItemExtra"));
         }
 
         return convertView;

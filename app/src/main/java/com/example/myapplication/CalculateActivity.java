@@ -38,11 +38,10 @@ public class CalculateActivity extends AppCompatActivity {
         calculateButton = findViewById(R.id.calculateButton);
         resultText = findViewById(R.id.resultText);
 
-        // 获取传递过来的数据
+        // 获取数据
         String currencyName = getIntent().getStringExtra("currencyName");
         String exchangeRate = getIntent().getStringExtra("exchangeRate");
-
-        // 显示货币信息和汇率
+        
         currencyNameText.setText("货币: " + currencyName);
         exchangeRateText.setText("汇率: " + exchangeRate);
 
@@ -66,10 +65,9 @@ public class CalculateActivity extends AppCompatActivity {
             double amount = Double.parseDouble(amountStr);
             double exchangeRate = Double.parseDouble(exchangeRateStr);
 
-            // 计算兑换外币金额
-            double result = amount * 100 / exchangeRate; // 除以100是因为银行汇率通常以100单位表示
+            // 计算
+            double result = amount * 100 / exchangeRate;
 
-            // 格式化结果
             DecimalFormat df = new DecimalFormat("#.##");
             String formattedResult = df.format(result);
 
