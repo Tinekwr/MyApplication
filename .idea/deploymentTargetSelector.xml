@@ -14,10 +14,10 @@
       <SelectionState runConfigName="CustomActivity (2)">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="CustomActivity">
+      <SelectionState runConfigName="CustomActivity (1)">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="CustomActivity (1)">
+      <SelectionState runConfigName="MyPageActivity">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>
