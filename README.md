@@ -1,7 +1,6 @@
-markdown
-# title
+# MyApplication 《这是课堂学习项目》
 ```
-田敬萱
-number:42311103
+作者：田敬萱
+学号:42311103
 
 ```
